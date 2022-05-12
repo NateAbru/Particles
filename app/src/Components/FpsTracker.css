@@ -1,0 +1,11 @@
+.num-particles {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width:130px;
+  margin: 10px 0 0 10px;
+  background-color: rgb(18, 34, 69);
+  color: white;
+  padding: 5px;
+  border-radius: 2px;
+}

@@ -1,10 +1,19 @@
 import './index.css';
-import {useEffect, useRef} from 'react';
+import {useEffect, useRef, useState} from 'react';
+import Menu from './Components/Menu.jsx';
+import FpsTracker from './Components/FpsTracker.jsx';
 
 function App() {
   const canvasRef = useRef(null);
+  const [numParticles, setNumParticles] = useState(15);
+  const [fps, setFps] = useState(0);
   let gradientRef = useRef({
-    gradient:'white'//temp value
+    gradient:null//temp value
+  })
+  let fpsRef = useRef({
+    fps:0,
+    lastTime:performance.now(),
+    frames:0
   })
   let themeRef = useRef({
     space:{
@@ -15,54 +24,54 @@ function App() {
     },
     crimson:{
       colorPreset:true,
-      background:'rgb(230,28,28)',
-      particles:'rgb(255,255,255)',
+      background:'rgb(239,28,28)',
+      particles:'rgb(180,180,180)',
     },
     monochrome:{
       colorPreset:true,
       background:'rgb(255,255,255)',
       particles:'rgb(0,0,0)',
     },
-    whiteRGB:{
-      colorPreset:false,
-      background:'rgb(255,255,255)',
-      particles:(color)=>{return color;}
-    },
-    blackRGB:{
+    rgb:{
       colorPreset:false,
       background:'rgb(0,0,0)',
       particles:(color)=>{return color;}
     },
-    cottonCandy:{
+    teal:{
       colorPreset:true,
-      background:'rgb(20,166,255)',
-      particles:'rgb(255,59,175)',
+      background:'rgb(20,145,178)',
+      particles:'rgb(170,0,0)',
+    },
+    pumpkin:{
+      colorPreset:true,
+      background:'rgb(228,94,12)',
+      particles:'rgb(0,102,0)',
     }
   })
-  let currentTheme = themeRef.current.monochrome;
+  let currentTheme = themeRef.current.rgb;
   const particlesList = [];
   function createParticles(x){  //function to create the list of particles
     for(let i = 1; i <= x; i++){
       const randX = Math.floor(Math.random() * window.innerWidth);
       const randY = Math.floor(Math.random() * window.innerHeight);
-      let randVelx = Math.floor((Math.random() * 3) + 1);
-      let randVely = Math.floor((Math.random() * 3) + 1);
+      let randVelx = ((Math.random() * 1) + .3);
+      let randVely = ((Math.random() * 1) +.3);
       const randXDir = Math.floor((Math.random() * 2) + 1);
       const randYDir = Math.floor((Math.random() * 2) + 1);
-      const randRadius = Math.floor((Math.random() * 3) + 3);
+      const randRadius = Math.floor((Math.random() * 3) + 1);
       if(randXDir === 1) randVelx = - randVelx; //random change of X direction
       if(randYDir === 1) randVely = - randVely; //random change of Y direction
       const particle = {  //particle object creation
         id : i,
         pos : {x:randX, y:randY},
         radius : randRadius,
-        vely : randVelx,
-        velx : randVely
+        vely : randVely,
+        velx : randVelx
       }
       particlesList.push(particle); //pushing next particle into list of particles
     }
   }
-  createParticles(200);
+  createParticles(15);
   const draw = (ctx, canvas, theme)=>{
       let gradient;
       if(theme.colorPreset) gradient = 'none';
@@ -82,8 +91,8 @@ function App() {
           let xPointDiff = particle.pos.x - particlesList[j].pos.x;
           let yPointDiff = particle.pos.y - particlesList[j].pos.y;
           let distance = Math.sqrt((xPointDiff * xPointDiff) + (yPointDiff * yPointDiff));
-          if(distance <= (h * .3)){
-            let lineW = (1 - (distance / (h * .3))); //value between 0 and 1 for line width depending on how far particles are. can be used for opacity too.
+          if(distance <= (h * .25)){
+            let lineW = (1 - (distance / (h * .25))); //value between 0 and 1 for line width depending on how far particles are. can be used for opacity too.
             ctx.beginPath();
             ctx.moveTo(particle.pos.x, particle.pos.y);
             ctx.lineTo(particlesList[j].pos.x, particlesList[j].pos.y);
@@ -93,6 +102,40 @@ function App() {
           }
         }
       });
+  }
+  const push = (e)=>{
+    e.preventDefault();
+    for(let i = 0; i < 3; i++){
+      const X = e.offsetX;
+      const Y = e.offsetY;
+      let randVelx = ((Math.random() * 1) + .3);
+      let randVely = ((Math.random() * 1) +.3);
+      const randXDir = Math.floor((Math.random() * 2) + 1);
+      const randYDir = Math.floor((Math.random() * 2) + 1);
+      const randRadius = Math.floor((Math.random() * 3) + 1);
+      if(randXDir === 1) randVelx = - randVelx; //random change of X direction
+      if(randYDir === 1) randVely = - randVely; //random change of Y direction
+      const particle = {  //particle object creation
+        id : i,
+        pos : {x:X, y:Y},
+        radius : randRadius,
+        vely : randVely,
+        velx : randVelx
+      }
+      particlesList.push(particle);
+    }
+    setNumParticles(particlesList.length);
+  }
+  const fpsFunc = ()=>{
+    let t = performance.now();
+    let delta = t - fpsRef.current.lastTime;
+    if(delta > 1000){
+      fpsRef.current.fps = fpsRef.current.frames * 1000 / delta;
+      fpsRef.current.frames = 0;
+      fpsRef.current.lastTime = t;
+    }
+    fpsRef.current.frames++;
+    setFps(Math.floor(fpsRef.current.fps));
   }
    useEffect(()=>{
     document.title = 'Particles';
@@ -118,8 +161,10 @@ function App() {
     }
     let animationID;
     const renderAnimation = ()=>{
+      
       draw(ctx, canvas, currentTheme);
       updateParticles();
+      fpsFunc();
       animationID = requestAnimationFrame(renderAnimation);
     }
     renderAnimation();
@@ -127,25 +172,35 @@ function App() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     }
-    const mouseMoveFunc = (e)=>{
-      let x = e.offsetX;
-      let y = e.offsetY;
-      particlesList.forEach((particle)=>{
-        if(particle.pos.x < x + 10 && particle.pos.x > x - 10) particle.velx = -particle.velx;
-        if(particle.pos.y < y + 10 && particle.pos.y > y - 10) particle.vely = -particle.vely;
-      })
+    // const mouseMoveFunc = (e)=>{
+    //   let x = e.offsetX;
+    //   let y = e.offsetY;
+    //   particlesList.forEach((particle)=>{
+    //     if(particle.pos.x < x + 10 && particle.pos.x > x - 10) particle.velx = -particle.velx;
+    //     if(particle.pos.y < y + 10 && particle.pos.y > y - 10) particle.vely = -particle.vely;
+    //   })
+    // }
+    const clickFunc = (e)=>{
+      push(e);
     }
     window.addEventListener('resize', resizeFunc);
-    canvas.addEventListener('mousemove',mouseMoveFunc);
+    // canvas.addEventListener('mousemove',mouseMoveFunc);
+    canvas.addEventListener('click', clickFunc);
     return()=>{
       cancelAnimationFrame(animationID);
       window.removeEventListener('resize', resizeFunc);
-      canvas.removeEventListener('mousemove',mouseMoveFunc);
+      // canvas.removeEventListener('mousemove',mouseMoveFunc);
+      canvas.removeEventListener('click', clickFunc);
     }
   },[]);
-
+  
   return (
-    <canvas id='particles' ref={canvasRef}></canvas>
+    <>
+      <canvas id='particles' ref={canvasRef}></canvas>
+      <FpsTracker numParticles={numParticles} fps={fps}/>
+      <Menu />
+    </>
   );
 }
+
 export default App;
