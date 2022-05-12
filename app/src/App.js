@@ -7,6 +7,10 @@ function App() {
   const canvasRef = useRef(null);
   const [numParticles, setNumParticles] = useState(15);
   const [fps, setFps] = useState(0);
+  let mouseMoveRef = useRef({
+    active:false,
+    pos:{x:null,y:null}
+  })
   let gradientRef = useRef({
     gradient:null//temp value
   })
@@ -48,7 +52,7 @@ function App() {
       particles:'rgb(0,102,0)',
     }
   })
-  let currentTheme = themeRef.current.rgb;
+  let currentTheme = themeRef.current.monochrome;
   const particlesList = [];
   function createParticles(x){  //function to create the list of particles
     for(let i = 1; i <= x; i++){
@@ -126,6 +130,32 @@ function App() {
     }
     setNumParticles(particlesList.length);
   }
+  const grab = (canvas, ctx, theme)=>{
+    if(mouseMoveRef.current.active)
+    {
+      console.log('hello');
+      let gradient;
+      if(theme.colorPreset) gradient = 'none';
+      else gradient = gradientRef.current.gradient;
+      let h = canvas.height;
+      let x = mouseMoveRef.current.pos.x;
+      let y = mouseMoveRef.current.pos.y;
+      particlesList.forEach((particle)=>{
+        let xPointDiff = particle.pos.x - x;
+        let yPointDiff = particle.pos.y - y;
+        let distance = Math.sqrt((xPointDiff * xPointDiff) + (yPointDiff * yPointDiff));
+        if(distance <= (h * .6)){
+          let lineW = (1 - (distance / (h * .6))); //value between 0 and 1 for line width depending on how far particles are. can be used for opacity too.
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(particle.pos.x, particle.pos.y);
+          (theme.colorPreset) ? ctx.strokeStyle = theme.particles : ctx.strokeStyle = gradient;
+          ctx.lineWidth = lineW;
+          ctx.stroke();
+        }
+      })
+    }
+  }
   const fpsFunc = ()=>{
     let t = performance.now();
     let delta = t - fpsRef.current.lastTime;
@@ -161,9 +191,9 @@ function App() {
     }
     let animationID;
     const renderAnimation = ()=>{
-      
       draw(ctx, canvas, currentTheme);
       updateParticles();
+      grab(canvas,ctx,currentTheme);
       fpsFunc();
       animationID = requestAnimationFrame(renderAnimation);
     }
@@ -172,24 +202,21 @@ function App() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     }
-    // const mouseMoveFunc = (e)=>{
-    //   let x = e.offsetX;
-    //   let y = e.offsetY;
-    //   particlesList.forEach((particle)=>{
-    //     if(particle.pos.x < x + 10 && particle.pos.x > x - 10) particle.velx = -particle.velx;
-    //     if(particle.pos.y < y + 10 && particle.pos.y > y - 10) particle.vely = -particle.vely;
-    //   })
-    // }
     const clickFunc = (e)=>{
       push(e);
     }
+    const mouseOver = (e)=>{
+      mouseMoveRef.current.active = true;
+      mouseMoveRef.current.pos.x = e.offsetX;
+      mouseMoveRef.current.pos.y = e.offsetY;
+    }
     window.addEventListener('resize', resizeFunc);
-    // canvas.addEventListener('mousemove',mouseMoveFunc);
+    canvas.addEventListener('mousemove',mouseOver);
     canvas.addEventListener('click', clickFunc);
     return()=>{
       cancelAnimationFrame(animationID);
       window.removeEventListener('resize', resizeFunc);
-      // canvas.removeEventListener('mousemove',mouseMoveFunc);
+      canvas.removeEventListener('mousemove',mouseOver);
       canvas.removeEventListener('click', clickFunc);
     }
   },[]);
