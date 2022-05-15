@@ -36,7 +36,7 @@ function App() {
       background:'rgb(255,255,255)',
       particles:'rgb(0,0,0)',
     },
-    rgb:{
+    spectrum:{
       colorPreset:false,
       background:'rgb(0,0,0)',
       particles:(color)=>{return color;}
@@ -52,13 +52,13 @@ function App() {
       particles:'rgb(0,102,0)',
     }
   })
-  let currentTheme = themeRef.current.monochrome;
+  let currentTheme = themeRef.current.spectrum;
   const particlesList = [];
   function createParticles(x){  //function to create the list of particles
     for(let i = 1; i <= x; i++){
       const randX = Math.floor(Math.random() * window.innerWidth);
       const randY = Math.floor(Math.random() * window.innerHeight);
-      let randVelx = ((Math.random() * 1) + .3);
+      let randVelx = ((Math.random() * 1) * 2 + .3);
       let randVely = ((Math.random() * 1) +.3);
       const randXDir = Math.floor((Math.random() * 2) + 1);
       const randYDir = Math.floor((Math.random() * 2) + 1);
@@ -156,6 +156,12 @@ function App() {
       })
     }
   }
+  const pop = ()=>{
+    for(let i = 0; i < 3; i++){
+      particlesList.shift();
+    }
+    setNumParticles(particlesList.length);
+  }
   const fpsFunc = ()=>{
     let t = performance.now();
     let delta = t - fpsRef.current.lastTime;
@@ -204,6 +210,7 @@ function App() {
     }
     const clickFunc = (e)=>{
       push(e);
+      // pop();
     }
     const mouseOver = (e)=>{
       mouseMoveRef.current.active = true;
