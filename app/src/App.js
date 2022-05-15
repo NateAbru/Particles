@@ -2,11 +2,12 @@ import './index.css';
 import {useEffect, useRef, useState} from 'react';
 import Menu from './Components/Menu.jsx';
 import FpsTracker from './Components/FpsTracker.jsx';
+import {themes} from './ThemeData';
 
 function App() {
   const canvasRef = useRef(null);
-  const [numParticles, setNumParticles] = useState(15);
-  const [fps, setFps] = useState(0);
+  const[numParticles, setNumParticles] = useState(15);
+  const[fps, setFps] = useState(0);
   let mouseMoveRef = useRef({
     active:false,
     pos:{x:null,y:null}
@@ -19,40 +20,15 @@ function App() {
     lastTime:performance.now(),
     frames:0
   })
-  let themeRef = useRef({
-    space:{
-      colorPreset:true,
-      background:'rgb(0,0,0)',
-      particles:'rgb(255,255,255)',
-
-    },
-    crimson:{
-      colorPreset:true,
-      background:'rgb(239,28,28)',
-      particles:'rgb(180,180,180)',
-    },
-    monochrome:{
-      colorPreset:true,
-      background:'rgb(255,255,255)',
-      particles:'rgb(0,0,0)',
-    },
-    spectrum:{
-      colorPreset:false,
-      background:'rgb(0,0,0)',
-      particles:(color)=>{return color;}
-    },
-    teal:{
-      colorPreset:true,
-      background:'rgb(20,145,178)',
-      particles:'rgb(170,0,0)',
-    },
-    pumpkin:{
-      colorPreset:true,
-      background:'rgb(228,94,12)',
-      particles:'rgb(0,102,0)',
-    }
+  let clickRef = useRef({
+    effect:'none'
   })
-  let currentTheme = themeRef.current.spectrum;
+  let hoverRef = useRef({
+    effect:'none'
+  });
+  let currentTheme = useRef({
+    theme: themes.space
+  });
   const particlesList = [];
   function createParticles(x){  //function to create the list of particles
     for(let i = 1; i <= x; i++){
@@ -133,7 +109,6 @@ function App() {
   const grab = (canvas, ctx, theme)=>{
     if(mouseMoveRef.current.active)
     {
-      console.log('hello');
       let gradient;
       if(theme.colorPreset) gradient = 'none';
       else gradient = gradientRef.current.gradient;
@@ -195,11 +170,12 @@ function App() {
         particle.pos.y += particle.vely;
       });
     }
+    
     let animationID;
     const renderAnimation = ()=>{
-      draw(ctx, canvas, currentTheme);
+      draw(ctx, canvas, currentTheme.current.theme);
       updateParticles();
-      grab(canvas,ctx,currentTheme);
+      grab(canvas,ctx,currentTheme.current.theme);
       fpsFunc();
       animationID = requestAnimationFrame(renderAnimation);
     }
@@ -209,30 +185,34 @@ function App() {
       canvas.height = window.innerHeight;
     }
     const clickFunc = (e)=>{
-      push(e);
-      // pop();
+      if(clickRef.current.effect === 'add') push(e);
+      if(clickRef.current.effect === 'remove') pop();
     }
-    const mouseOver = (e)=>{
-      mouseMoveRef.current.active = true;
-      mouseMoveRef.current.pos.x = e.offsetX;
-      mouseMoveRef.current.pos.y = e.offsetY;
+    const mouseMove = (e)=>{
+      if(hoverRef.current.effect === 'grab'){
+        mouseMoveRef.current.active = true;
+        mouseMoveRef.current.pos.x = e.offsetX;
+        mouseMoveRef.current.pos.y = e.offsetY;
+      }
+      else{
+        mouseMoveRef.current.active = false;
+      }
     }
     window.addEventListener('resize', resizeFunc);
-    canvas.addEventListener('mousemove',mouseOver);
+    canvas.addEventListener('mousemove',mouseMove);
     canvas.addEventListener('click', clickFunc);
     return()=>{
       cancelAnimationFrame(animationID);
       window.removeEventListener('resize', resizeFunc);
-      canvas.removeEventListener('mousemove',mouseOver);
+      canvas.removeEventListener('mousemove',mouseMove);
       canvas.removeEventListener('click', clickFunc);
     }
   },[]);
-  
   return (
     <>
       <canvas id='particles' ref={canvasRef}></canvas>
       <FpsTracker numParticles={numParticles} fps={fps}/>
-      <Menu />
+      <Menu clickRef={clickRef} hoverRef={hoverRef} currentTheme={currentTheme}/>
     </>
   );
 }
