@@ -2,8 +2,6 @@
   position:absolute;
   right:0;
   top:0;
-  /* height:100px; */
-  /* box-shadow:2px 3px 5px rgba(0,0,0,.2), 0 3px 15px rgba(0,0,0,.2); */
   margin:10px 10px 0 0;
 }
 h4:nth-child(1):not(.num-particles h4){
@@ -19,8 +17,6 @@ h4:not(.num-particles h4){
   background-color: rgb(18, 34, 69);
   padding: 2px 5px 2px 5px;
   border-bottom:1px solid rgba(37, 159, 190,.5);
-
-  /* border-radius: 2px; */
 }
 .option-container{
   background-color:rgba(21, 93, 109,.6);;
@@ -30,6 +26,10 @@ h4:not(.num-particles h4){
   margin-left:10px;
   padding: 2px 5px 2px 5px;
   position:relative;
+  transition:background-color .2s ease-out;
+}
+.option-container:hover{
+  background-color:rgba(64, 255, 0, 0.5);
 }
 .indicator{
   position:absolute;
@@ -51,5 +51,10 @@ h4:not(.num-particles h4):hover, .option-container:hover{
 }
 .icon{
   vertical-align:center;
-
+}
+.active{
+  background-color:rgba(9, 255, 0, 0.5);
+}
+.no-show{
+  display:none;
 }

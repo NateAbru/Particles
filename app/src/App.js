@@ -21,7 +21,7 @@ function App() {
     frames:0
   })
   let clickRef = useRef({
-    effect:'none'
+    effect:'add'
   })
   let hoverRef = useRef({
     effect:'none'
@@ -38,7 +38,7 @@ function App() {
       let randVely = ((Math.random() * 1) +.3);
       const randXDir = Math.floor((Math.random() * 2) + 1);
       const randYDir = Math.floor((Math.random() * 2) + 1);
-      const randRadius = Math.floor((Math.random() * 3) + 1);
+      const randRadius = Math.floor((Math.random() * 10) + 1);
       if(randXDir === 1) randVelx = - randVelx; //random change of X direction
       if(randYDir === 1) randVely = - randVely; //random change of Y direction
       const particle = {  //particle object creation
@@ -53,6 +53,12 @@ function App() {
   }
   createParticles(15);
   const draw = (ctx, canvas, theme)=>{
+    const dpi = window.devicePixelRatio;
+    canvas.width = window.innerWidth * dpi;
+    canvas.height = window.innerHeight * dpi;
+    ctx.scale(dpi,dpi);
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
       let gradient;
       if(theme.colorPreset) gradient = 'none';
       else gradient = gradientRef.current.gradient;
@@ -76,7 +82,7 @@ function App() {
             ctx.beginPath();
             ctx.moveTo(particle.pos.x, particle.pos.y);
             ctx.lineTo(particlesList[j].pos.x, particlesList[j].pos.y);
-            (theme.colorPreset) ? ctx.strokeStyle = theme.particles : ctx.strokeStyle = gradient;
+            (theme.colorPreset) ? ctx.strokeStyle = theme.lines : ctx.strokeStyle = gradient;
             ctx.lineWidth = lineW;
             ctx.stroke();
           }
@@ -92,7 +98,7 @@ function App() {
       let randVely = ((Math.random() * 1) +.3);
       const randXDir = Math.floor((Math.random() * 2) + 1);
       const randYDir = Math.floor((Math.random() * 2) + 1);
-      const randRadius = Math.floor((Math.random() * 3) + 1);
+      const randRadius = Math.floor((Math.random() * 10) + 1);
       if(randXDir === 1) randVelx = - randVelx; //random change of X direction
       if(randYDir === 1) randVely = - randVely; //random change of Y direction
       const particle = {  //particle object creation
@@ -151,21 +157,25 @@ function App() {
    useEffect(()=>{
     document.title = 'Particles';
     const canvas = canvasRef.current;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
     const ctx = canvas.getContext('2d');
-    let grd = ctx.createRadialGradient(canvas.width/2, canvas.height/2,canvas.width/8,canvas.width/2,canvas.height/2,canvas.width/2);
-    grd.addColorStop(0, 'rgb(255,0,0)');//red
-    grd.addColorStop(.2, 'rgb(255,231,0)'); //yellow
-    grd.addColorStop(.4, 'rgb(0,212,3)');//green
-    grd.addColorStop(.6, 'rgb(0,255,255)');//cyan
-    grd.addColorStop(.8, 'rgb(0,100,212)');//blue
-    grd.addColorStop(1, 'rgb(204,0,212)');//magenta
+    const dpi = window.devicePixelRatio;
+    canvas.width = window.innerWidth * dpi;
+    canvas.height = window.innerHeight * dpi;
+    ctx.scale(dpi,dpi);
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    let grd = ctx.createRadialGradient(window.innerWidth/2, window.innerHeight/2,window.innerWidth/8,window.innerWidth/2,window.innerHeight/2,window.innerWidth/2);
+    grd.addColorStop(0, 'rgba(255,0,0,.45)');//red
+    grd.addColorStop(.2, 'rgba(255,231,0,.45)'); //yellow
+    grd.addColorStop(.4, 'rgba(0,212,3,.45)');//green
+    grd.addColorStop(.6, 'rgba(0,255,255,.45)');//cyan
+    grd.addColorStop(.8, 'rgba(0,100,212,.45)');//blue
+    grd.addColorStop(1, 'rgba(204,0,212,.45)');//magenta
     gradientRef.current.gradient = grd;
     const updateParticles = ()=>{
       particlesList.forEach((particle)=>{
-        if(particle.pos.x + particle.velx > canvas.width || particle.pos.x + particle.velx < 0) particle.velx = -particle.velx;
-        if(particle.pos.y + particle.vely > canvas.height || particle.pos.y + particle.vely < 0) particle.vely = -particle.vely;
+        if(particle.pos.x + particle.velx > window.innerWidth || particle.pos.x + particle.velx < 0) particle.velx = -particle.velx;
+        if(particle.pos.y + particle.vely > window.innerHeight || particle.pos.y + particle.vely < 0) particle.vely = -particle.vely;
         particle.pos.x += particle.velx;
         particle.pos.y += particle.vely;
       });
