@@ -3,14 +3,18 @@ import {CgArrowsExpandDownRight as Arrow} from 'react-icons/cg';
 import {themes} from '../ThemeData';
 import {useEffect, useRef} from 'react';
 
-const Menu = ({clickRef,hoverRef,currentTheme})=>{ //props are the variable refs from App.js 
-  const optionsRef = useRef(null);
+const Menu = ({clickRef,hoverRef,currentTheme, isLinkingRef})=>{ //props are the variable refs from App.js 
+  //declaring html element references
   const themesOptionRef = useRef(null);
   const displayThemesRef = useRef(null);
   const clickOptionsRef = useRef(null);
   const displayClickOptionsRef = useRef(null);
   const hoverOptionsRef = useRef(null);
   const displayHoverOptionsRef = useRef(null);
+  const linkOptionsRef = useRef(null);
+  const displayLinkOptionsRef = useRef(null);
+
+  //User Preference functions
   const changeClickEffect = (s)=>{
     clickRef.current.effect = s;
   }
@@ -27,16 +31,20 @@ const Menu = ({clickRef,hoverRef,currentTheme})=>{ //props are the variable refs
     if(s === 'blue') currentTheme.current.theme = themes.blue;
      if(s === 'fuchsia') currentTheme.current.theme = themes.fuchsia;
   }
+  const changeLinkingOption = (bool)=>{
+    isLinkingRef.current.value = bool;
+  }
   useEffect(()=>{
-    const options = optionsRef.current;
+    //getting html element references
     const themesOption = themesOptionRef.current;
     const displayThemes = displayThemesRef.current;
     const clickOptions = clickOptionsRef.current;
     const displayClickOptions = displayClickOptionsRef.current;
     const hoverOptions = hoverOptionsRef.current;
     const displayHoverOptions = displayHoverOptionsRef.current;
-
-    //functions
+    const linkOptions = linkOptionsRef.current;
+    const displayLinkOptions = displayLinkOptionsRef.current;
+    //UI selection indicator functions
     const themeIndicatorFunc = (i, length)=>{
       for(let x = 0; x < length; x++){
         if(themesOption.childNodes[x].childNodes[0].classList.contains('active')){
@@ -61,7 +69,14 @@ const Menu = ({clickRef,hoverRef,currentTheme})=>{ //props are the variable refs
       }
       hoverOptions.childNodes[i].childNodes[0].classList.add('active');
     }
-
+    const linkIndicatorFunc = (i, length)=>{
+      for(let x = 0; x < length; x++){
+        if(linkOptions.childNodes[x].childNodes[0].classList.contains('active')){
+          linkOptions.childNodes[x].childNodes[0].classList.remove('active');
+        }
+      }
+      linkOptions.childNodes[i].childNodes[0].classList.add('active');
+    }
     //Themes sections
     const displayThemesFunc = ()=>{
       if(displayThemes.nextSibling.classList.contains('no-show')) displayThemes.nextSibling.classList.remove('no-show');
@@ -72,7 +87,6 @@ const Menu = ({clickRef,hoverRef,currentTheme})=>{ //props are the variable refs
     for(let i = 0; i < len; i++){
       themesOption.childNodes[i].addEventListener('click', ()=>{themeIndicatorFunc(i, len)});
     }
-
     //click section
     const displayClickEventsFunc = ()=>{
       if(displayClickOptions.nextSibling.classList.contains('no-show')) displayClickOptions.nextSibling.classList.remove('no-show');
@@ -83,7 +97,6 @@ const Menu = ({clickRef,hoverRef,currentTheme})=>{ //props are the variable refs
     for(let i = 0; i < len2; i++){
       clickOptions.childNodes[i].addEventListener('click', ()=>{clickIndicatorFunc(i, len2)});
     }
-
     //hover section
     const displayHoverEventsFunc = ()=>{
       if(displayHoverOptions.nextSibling.classList.contains('no-show')) displayHoverOptions.nextSibling.classList.remove('no-show');
@@ -93,6 +106,16 @@ const Menu = ({clickRef,hoverRef,currentTheme})=>{ //props are the variable refs
     let len3 = hoverOptions.childNodes.length;
     for(let i = 0; i < len3; i++){
       hoverOptions.childNodes[i].addEventListener('click', ()=>{hoverIndicatorFunc(i, len3)});
+    }
+    //link preference section
+    const displayLinkOptionsFunc = ()=>{
+      if(displayLinkOptions.nextSibling.classList.contains('no-show')) displayLinkOptions.nextSibling.classList.remove('no-show');
+      else displayLinkOptions.nextSibling.classList.add('no-show');
+    }
+    displayLinkOptions.addEventListener('click', displayLinkOptionsFunc);  //event to show options for theme selection
+    let len4 = linkOptions.childNodes.length;
+    for(let i = 0; i < len3; i++){
+      linkOptions.childNodes[i].addEventListener('click', ()=>{linkIndicatorFunc(i, len4)});
     }
     return (()=>{
       for(let i = 0; i < len; i++) themesOption.childNodes[i].removeEventListener('click', ()=>{themeIndicatorFunc(i, len)});
@@ -105,7 +128,7 @@ const Menu = ({clickRef,hoverRef,currentTheme})=>{ //props are the variable refs
   },[]);
   return (
     <>
-      <nav className='menu' ref={optionsRef}>
+      <nav className='menu'>
         <h4 style={{color:'white'}} ref={displayThemesRef}><Arrow className='icon'/> Theme</h4>
         <div ref={themesOptionRef} className='no-show'>
           <section className='option-container themes' onClick={()=>{changeTheme('space')}}>
@@ -161,6 +184,17 @@ const Menu = ({clickRef,hoverRef,currentTheme})=>{ //props are the variable refs
           <section className='option-container hover-effects' onClick={()=>{changeHoverEffect('grab')}}>
             <div className='indicator'></div>
             <div className='option'><h5>Grab</h5></div>
+          </section>
+        </div>
+        <h4 style={{color:'white'}} ref={displayLinkOptionsRef}><Arrow className='icon'/> Link Particles</h4>
+        <div ref={linkOptionsRef} className='no-show'>
+          <section className='option-container link-option' onClick={()=>{changeLinkingOption(true)}}>
+            <div className='indicator active'></div>
+            <div className='option'><h5>True</h5></div>
+          </section> 
+          <section className='option-container hover-effects' onClick={()=>{changeLinkingOption(false)}}>
+            <div className='indicator'></div>
+            <div className='option'><h5>False</h5></div>
           </section>
         </div>
       </nav>

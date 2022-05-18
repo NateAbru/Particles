@@ -29,6 +29,9 @@ function App() {
   let currentTheme = useRef({
     theme: themes.space
   });
+  let isLinkingRef = useRef({
+    value:true
+  })
   const particlesList = [];
   function createParticles(x){  //function to create the list of particles
     for(let i = 1; i <= x; i++){
@@ -62,9 +65,11 @@ function App() {
       let gradient;
       if(theme.colorPreset) gradient = 'none';
       else gradient = gradientRef.current.gradient;
-      let h = canvas.height;
+      let linkLen;
+      if(window.innerWidth >= 680) linkLen = window.innerHeight;
+      else linkLen = window.innerWidth;
       ctx.fillStyle = theme.background;
-      ctx.fillRect(0,0,canvas.width, h);
+      ctx.fillRect(0,0,window.innerWidth, window.innerHeight);
       particlesList.forEach((particle, index)=>{
         ctx.beginPath();
         ctx.arc(particle.pos.x, particle.pos.y, particle.radius, 0, 2 * Math.PI);
@@ -73,23 +78,25 @@ function App() {
         (theme.colorPreset) ? ctx.strokeStyle = theme.particles : ctx.strokeStyle = gradient;
         ctx.stroke();
         let len = particlesList.length;
-        for(let j = index + 1; j < len;j++){ // loop to compare distance between particles
-          let xPointDiff = particle.pos.x - particlesList[j].pos.x;
-          let yPointDiff = particle.pos.y - particlesList[j].pos.y;
-          let distance = Math.sqrt((xPointDiff * xPointDiff) + (yPointDiff * yPointDiff));
-          if(distance <= (h * .25)){
-            let lineW = (1 - (distance / (h * .25))); //value between 0 and 1 for line width depending on how far particles are. can be used for opacity too.
-            ctx.beginPath();
-            ctx.moveTo(particle.pos.x, particle.pos.y);
-            ctx.lineTo(particlesList[j].pos.x, particlesList[j].pos.y);
-            (theme.colorPreset) ? ctx.strokeStyle = theme.lines : ctx.strokeStyle = gradient;
-            ctx.lineWidth = lineW;
-            ctx.stroke();
+        if(isLinkingRef.current.value){
+          for(let j = index + 1; j < len;j++){ // loop to compare distance between particles
+            let xPointDiff = particle.pos.x - particlesList[j].pos.x;
+            let yPointDiff = particle.pos.y - particlesList[j].pos.y;
+            let distance = Math.sqrt((xPointDiff * xPointDiff) + (yPointDiff * yPointDiff));
+            if(distance <= (linkLen * .25)){
+              let lineW = (1 - (distance / (linkLen * .25))); //value between 0 and 1 for line width depending on how far particles are. can be used for opacity too.
+              ctx.beginPath();
+              ctx.moveTo(particle.pos.x, particle.pos.y);
+              ctx.lineTo(particlesList[j].pos.x, particlesList[j].pos.y);
+              (theme.colorPreset) ? ctx.strokeStyle = theme.lines : ctx.strokeStyle = gradient;
+              ctx.lineWidth = lineW;
+              ctx.stroke();
+            }
           }
         }
       });
   }
-  const push = (e)=>{
+  const push = (e)=>{ //add particles to screen
     e.preventDefault();
     for(let i = 0; i < 3; i++){
       const X = e.offsetX;
@@ -112,21 +119,23 @@ function App() {
     }
     setNumParticles(particlesList.length);
   }
-  const grab = (canvas, ctx, theme)=>{
+  const grab = (canvas, ctx, theme)=>{ //grab nearby particles
     if(mouseMoveRef.current.active)
     {
       let gradient;
       if(theme.colorPreset) gradient = 'none';
       else gradient = gradientRef.current.gradient;
-      let h = canvas.height;
+      let linkLen
+      if(window.innerWidth >= 680) linkLen = window.innerHeight;
+      else linkLen = window.innerWidth;
       let x = mouseMoveRef.current.pos.x;
       let y = mouseMoveRef.current.pos.y;
       particlesList.forEach((particle)=>{
         let xPointDiff = particle.pos.x - x;
         let yPointDiff = particle.pos.y - y;
         let distance = Math.sqrt((xPointDiff * xPointDiff) + (yPointDiff * yPointDiff));
-        if(distance <= (h * .6)){
-          let lineW = (1 - (distance / (h * .6))); //value between 0 and 1 for line width depending on how far particles are. can be used for opacity too.
+        if(distance <= (linkLen * .6)){
+          let lineW = (1 - (distance / (linkLen * .6))); //value between 0 and 1 for line width depending on how far particles are. can be used for opacity too.
           ctx.beginPath();
           ctx.moveTo(x, y);
           ctx.lineTo(particle.pos.x, particle.pos.y);
@@ -137,13 +146,13 @@ function App() {
       })
     }
   }
-  const pop = ()=>{
+  const pop = ()=>{ //remove particles from screen
     for(let i = 0; i < 3; i++){
       particlesList.shift();
     }
     setNumParticles(particlesList.length);
   }
-  const fpsFunc = ()=>{
+  const fpsFunc = ()=>{ //calculate fps of canvas painting
     let t = performance.now();
     let delta = t - fpsRef.current.lastTime;
     if(delta > 1000){
@@ -191,8 +200,20 @@ function App() {
     }
     renderAnimation();
     const resizeFunc = ()=>{
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const dpi = window.devicePixelRatio;
+      canvas.width = window.innerWidth * dpi;
+      canvas.height = window.innerHeight * dpi;
+      ctx.scale(dpi,dpi);
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      grd = ctx.createRadialGradient(window.innerWidth/2, window.innerHeight/2,window.innerWidth/8,window.innerWidth/2,window.innerHeight/2,window.innerWidth/2);
+      grd.addColorStop(0, 'rgba(255,0,0,.45)');//red
+      grd.addColorStop(.2, 'rgba(255,231,0,.45)'); //yellow
+      grd.addColorStop(.4, 'rgba(0,212,3,.45)');//green
+      grd.addColorStop(.6, 'rgba(0,255,255,.45)');//cyan
+      grd.addColorStop(.8, 'rgba(0,100,212,.45)');//blue
+      grd.addColorStop(1, 'rgba(204,0,212,.45)');//magenta
+      gradientRef.current.gradient = grd;
     }
     const clickFunc = (e)=>{
       if(clickRef.current.effect === 'add') push(e);
@@ -222,7 +243,7 @@ function App() {
     <>
       <canvas id='particles' ref={canvasRef}></canvas>
       <FpsTracker numParticles={numParticles} fps={fps}/>
-      <Menu clickRef={clickRef} hoverRef={hoverRef} currentTheme={currentTheme}/>
+      <Menu clickRef={clickRef} hoverRef={hoverRef} currentTheme={currentTheme} isLinkingRef={isLinkingRef}/>
     </>
   );
 }
